@@ -81,11 +81,22 @@ To run **GoPad**, you need:
 
 ```
 GoPad/
-├── main.go         # Entry point for the application
-├── src/            # (Optional) Additional layout and GUI-related code
-├── .env            # Theme and environment settings
-├── go.mod          # Go module definition
-└── README.md       # Project documentation
+├── cmd/
+│   └── notepad/
+│       └── main.go            # Application entry point
+├── go.mod                     # Go module definition
+├── go.sum                     # Go module checksums
+├── internal/
+│   ├── app/
+│   │   └── services.go        # Core application services
+│   └── ui/
+│       ├── theme.go           # Theme definitions
+│       └── window.go          # Window and UI logic
+├── LICENSE                    # Project license
+├── README.md                  # Project documentation (You are here)
+└── themes/
+    ├── darker.go              # Darker theme implementation
+    └── fancy.go               # Fancy theme implementation
 ```
 
 ---
