@@ -1,82 +1,44 @@
 package ui
 
 import (
-	"log"
-	"time"
-
 	"gopad/internal/app"
+	"gopad/internal/ui/editor"
+	editorHelpers "gopad/internal/ui/editor/helpers"
+	"gopad/internal/ui/menus"
+	"gopad/internal/ui/statusbar"
+	"gopad/internal/ui/statusbar/helpers"
 
-	fyne "fyne.io/fyne/v2"
+	"fyne.io/fyne/v2"
 	fyneApp "fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/container"
-	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/driver/desktop"
-	"fyne.io/fyne/v2/theme"
-	"fyne.io/fyne/v2/widget"
 )
-
-type CustomEntry struct {
-	widget.Entry
-	OnShortcut func(shortcut fyne.Shortcut)
-}
-
-func NewCustomEntry() *CustomEntry {
-	e := &CustomEntry{}
-	e.MultiLine = true
-	e.ExtendBaseWidget(e)
-	return e
-}
-
-func (e *CustomEntry) TypedShortcut(shortcut fyne.Shortcut) {
-	if e.OnShortcut != nil {
-		e.OnShortcut(shortcut)
-	}
-	e.Entry.TypedShortcut(shortcut)
-}
 
 func NewWindow() {
 	a := fyneApp.New()
 	w := a.NewWindow("Gopad")
 
 	svc := &app.Service{Window: w}
+	editorWidget := editor.NewCustomEntry(svc, nil)
 
-	editor := NewCustomEntry()
-	status := widget.NewLabel("Ready")
+	statusBar, statusBarUI := statusbar.NewStatusBar(func() string {
+		return editorWidget.Text
+	}, helpers.StatusResetDelay)
 
-	svc.TextContent = func() string { return editor.Text }
-	svc.SetContent = func(text string) { editor.SetText(text) }
-	svc.OnStatus = func(msg string) { status.SetText(msg) }
-
-	// Shortcut handling inside the editor
-	editor.OnShortcut = func(shortcut fyne.Shortcut) {
-		switch s := shortcut.(type) {
-		case *desktop.CustomShortcut:
-			switch {
-			case s.KeyName == fyne.KeyS && s.Modifier == fyne.KeyModifierControl:
-				log.Println("Shortcut triggered: Ctrl+S")
-				svc.Save()
-			case s.KeyName == fyne.KeyO && s.Modifier == fyne.KeyModifierControl:
-				log.Println("Shortcut triggered: Ctrl+O")
-				svc.Open()
-			case s.KeyName == fyne.KeyN && s.Modifier == fyne.KeyModifierControl:
-				log.Println("Shortcut triggered: Ctrl+N")
-				svc.New()
-			}
-		}
+	editorWidget.OnChanged = func(_ string) {
+		statusBar.UpdateLive()
 	}
-	// Theme toggler
-	themeSwitch := widget.NewCheck("", func(on bool) {
-		if on {
-			a.Settings().SetTheme(theme.DarkTheme())
-			status.SetText("Switched to Dark Theme")
-		} else {
-			a.Settings().SetTheme(theme.LightTheme())
-			status.SetText("Switched to Light Theme")
-		}
-	})
-	themeToggle := container.NewHBox(widget.NewLabel("Dark Mode"), themeSwitch)
+	editorWidget.OnShortcut = func(sc fyne.Shortcut) {
+		editorHelpers.HandleShortcut(sc, svc, statusBar.ShowMessage)
+	}
 
-	// Also add global shortcuts to canvas for redundancy
+	svc.TextContent = func() string { return editorWidget.Text }
+	svc.SetContent = func(text string) { editorWidget.SetText(text) }
+	svc.OnStatus = statusBar.ShowMessage
+
+	mainMenu := menus.SetupMainMenu(a, w, svc, &editorWidget.Entry, statusBar.ShowMessage)
+	w.SetMainMenu(mainMenu)
+
 	canvas := w.Canvas()
 	canvas.AddShortcut(&desktop.CustomShortcut{KeyName: fyne.KeyS, Modifier: fyne.KeyModifierControl}, func(fyne.Shortcut) {
 		svc.Save()
@@ -88,54 +50,8 @@ func NewWindow() {
 		svc.New()
 	})
 
-	// Menus
-	fileMenu := fyne.NewMenu("File",
-		fyne.NewMenuItem("New", svc.New),
-		fyne.NewMenuItem("Open", svc.Open),
-		fyne.NewMenuItem("Save", svc.Save),
-		fyne.NewMenuItem("Save As", svc.SaveAs),
-	)
-
-	editMenu := fyne.NewMenu("Edit",
-		fyne.NewMenuItem("Insert Date/Time", func() {
-			editor.SetText(editor.Text + "\n" + time.Now().Format("2006-01-02 15:04:05"))
-			status.SetText("Inserted date/time")
-		}),
-		fyne.NewMenuItem("Clear", func() {
-			editor.SetText("")
-			status.SetText("Cleared editor")
-		}),
-		fyne.NewMenuItem("Copy", func() {
-			a.Clipboard().SetContent(editor.SelectedText())
-			status.SetText("Copied text")
-		}),
-		fyne.NewMenuItem("Cut", func() {
-			// Placeholder for cut logic
-			status.SetText("Cut text")
-		}),
-		fyne.NewMenuItem("Paste", func() {
-			content := a.Clipboard().Content()
-			if content == "" {
-				dialog.ShowInformation("Paste", "Clipboard is empty", w)
-				return
-			}
-			editor.SetText(editor.Text + content)
-			status.SetText("Pasted text")
-		}),
-	)
-
-	helpMenu := fyne.NewMenu("Help",
-		fyne.NewMenuItem("About", func() {
-			dialog.ShowInformation("About", "A simple Notepad built with Fyne", w)
-		}),
-	)
-
-	w.SetMainMenu(fyne.NewMainMenu(fileMenu, editMenu, helpMenu))
-
-	statusBar := container.NewBorder(nil, nil, nil, status, themeToggle)
-	content := container.NewBorder(nil, statusBar, nil, nil, editor)
+	content := container.NewBorder(nil, statusBarUI, nil, nil, editorWidget)
 	w.SetContent(content)
-
 	w.Resize(fyne.NewSize(700, 500))
 	w.ShowAndRun()
 }
