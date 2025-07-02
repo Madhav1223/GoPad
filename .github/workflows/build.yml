@@ -29,3 +29,4 @@ jobs:
       - name: Build Go project
         run: |
           go build -o builds/myproject ./cmd/gopad
+
