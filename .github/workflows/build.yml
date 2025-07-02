@@ -25,8 +25,12 @@ jobs:
         run: |
           mkdir -p builds
 
-      # Step 4: Build the Go project
+      # Step 4: Run 'go mod tidy' to ensure dependencies are tidy
+      - name: Run go mod tidy
+        run: |
+          go mod tidy
+
+      # Step 5: Build the Go project
       - name: Build Go project
         run: |
           go build -o builds/myproject ./cmd/gopad
-
