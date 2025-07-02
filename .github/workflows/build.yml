@@ -30,9 +30,3 @@ jobs:
         run: |
           go build -o builds/myproject ./cmd/gopad
 
-      # Optional: Upload the build artifact (useful for testing)
-      - name: Upload Build Artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: go-build
-          path: builds/myproject
