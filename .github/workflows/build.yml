@@ -1,0 +1,38 @@
+name: Go Build and Place in Builds Folder
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the code
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      # Step 2: Set up Go environment
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: "1.19" # Adjust to your Go version
+
+      # Step 3: Ensure the 'builds' directory exists
+      - name: Ensure /builds directory exists
+        run: |
+          mkdir -p builds
+
+      # Step 4: Build the Go project
+      - name: Build Go project
+        run: |
+          go build -o builds/myproject ./cmd/gopad
+
+      # Optional: Upload the build artifact (useful for testing)
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: go-build
+          path: builds/myproject
