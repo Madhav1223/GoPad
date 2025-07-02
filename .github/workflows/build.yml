@@ -40,6 +40,10 @@ jobs:
       - name: Ensure /builds directory exists
         run: mkdir -p builds
 
-      # Step 5: Build the Go project
+      # Step 5: Run 'go mod tidy'
+      - name: Run go mod tidy
+        run: go mod tidy
+
+      # Step 6: Build the Go project
       - name: Build Go project
         run: go build -o builds/myproject ./cmd/gopad
