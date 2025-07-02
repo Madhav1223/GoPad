@@ -1,31 +1,54 @@
-name: Go Build and Place in Builds Folder
+name: Go Cross-Build and Release
 
 on:
   push:
-    branches:
-      - main
+    tags:
+      - "v*" # Run only when a version tag like v1.0.0 is pushed
 
 jobs:
-  build:
+  release:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Checkout the code
       - name: Checkout code
         uses: actions/checkout@v2
 
-      # Step 2: Set up Go environment
       - name: Set up Go
         uses: actions/setup-go@v3
         with:
-          go-version: "1.19" # Adjust to your Go version
+          go-version: "1.22.2"
 
-      # Step 3: Ensure the 'builds' directory exists
-      - name: Ensure /builds directory exists
+      - name: Install required dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libgl1-mesa-dev \
+            libx11-dev \
+            libxi-dev \
+            libxcursor-dev \
+            libxrandr-dev \
+            libxinerama-dev \
+            libxxf86vm-dev \
+            libxext-dev \
+            libxfixes-dev \
+            pkg-config
+
+      - name: Tidy Go modules
+        run: go mod tidy
+
+      - name: Cross-compile for Linux, macOS, Windows
         run: |
           mkdir -p builds
+          GOOS=linux   GOARCH=amd64 go build -o builds/myproject-linux-amd64 ./cmd/gopad
+          GOOS=darwin  GOARCH=amd64 go build -o builds/myproject-darwin-amd64 ./cmd/gopad
+          GOOS=windows GOARCH=amd64 go build -o builds/myproject-windows-amd64.exe ./cmd/gopad
 
-      # Step 4: Build the Go project
-      - name: Build Go project
-        run: |
-          go build -o builds/myproject ./cmd/gopad
+      - name: Upload binaries to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            builds/myproject-linux-amd64
+            builds/myproject-darwin-amd64
+            builds/myproject-windows-amd64.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
