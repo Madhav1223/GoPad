@@ -1,24 +1,23 @@
-name: Go Build and Place in Builds Folder
+name: Go Cross-Build and Release
 
 on:
   push:
-    branches:
-      - main
+    tags:
+      - "v*" # Run only when a version tag like v1.0.0 is pushed
 
 jobs:
-  build:
+  release:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Checkout the code
       - name: Checkout code
         uses: actions/checkout@v2
 
-      # Step 2: Set up Go environment
       - name: Set up Go
         uses: actions/setup-go@v3
         with:
           go-version: "1.22.2"
+
 
       # Step 3: Install native dependencies for OpenGL and GLFW
       - name: Install system dependencies
@@ -36,6 +35,27 @@ jobs:
             libxfixes-dev \
             pkg-config
 
+
+      - name: Tidy Go modules
+        run: go mod tidy
+
+      - name: Cross-compile for Linux, macOS, Windows
+        run: |
+          mkdir -p builds
+          GOOS=linux   GOARCH=amd64 go build -o builds/myproject-linux-amd64 ./cmd/gopad
+          GOOS=darwin  GOARCH=amd64 go build -o builds/myproject-darwin-amd64 ./cmd/gopad
+          GOOS=windows GOARCH=amd64 go build -o builds/myproject-windows-amd64.exe ./cmd/gopad
+
+      - name: Upload binaries to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            builds/myproject-linux-amd64
+            builds/myproject-darwin-amd64
+            builds/myproject-windows-amd64.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       # Step 4: Ensure the 'builds' directory exists
       - name: Ensure /builds directory exists
         run: mkdir -p builds
@@ -47,3 +67,4 @@ jobs:
       # Step 6: Build the Go project
       - name: Build Go project
         run: go build -o builds/myproject ./cmd/gopad
+
