@@ -1,13 +1,29 @@
-name: Go Cross-Build and Release
+name: Go Build for GUI Platforms
 
 on:
   push:
     tags:
-      - "v*" # Run only when a version tag like v1.0.0 is pushed
+      - "v*"
 
 jobs:
-  release:
-    runs-on: ubuntu-latest
+  build:
+    name: Build for ${{ matrix.goos }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      matrix:
+        include:
+          - goos: linux
+            goarch: amd64
+            runner: ubuntu-latest
+            ext: ""
+          - goos: windows
+            goarch: amd64
+            runner: windows-latest
+            ext: .exe
+          - goos: darwin
+            goarch: amd64
+            runner: macos-latest
+            ext: ""
 
     steps:
       - name: Checkout code
@@ -18,7 +34,8 @@ jobs:
         with:
           go-version: "1.22.2"
 
-      - name: Install required dependencies
+      - name: Install system deps (Linux only)
+        if: matrix.goos == 'linux'
         run: |
           sudo apt-get update
           sudo apt-get install -y \
@@ -33,22 +50,17 @@ jobs:
             libxfixes-dev \
             pkg-config
 
-      - name: Tidy Go modules
+      - name: Tidy modules
         run: go mod tidy
 
-      - name: Cross-compile for Linux, macOS, Windows
+      - name: Build binary
         run: |
           mkdir -p builds
-          GOOS=linux   GOARCH=amd64 go build -o builds/myproject-linux-amd64 ./cmd/gopad
-          GOOS=darwin  GOARCH=amd64 go build -o builds/myproject-darwin-amd64 ./cmd/gopad
-          GOOS=windows GOARCH=amd64 go build -o builds/myproject-windows-amd64.exe ./cmd/gopad
+          go build -o builds/myproject-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.ext }} ./cmd/gopad
 
-      - name: Upload binaries to GitHub Release
+      - name: Upload artifact
         uses: softprops/action-gh-release@v2
         with:
-          files: |
-            builds/myproject-linux-amd64
-            builds/myproject-darwin-amd64
-            builds/myproject-windows-amd64.exe
+          files: builds/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
