@@ -18,7 +18,9 @@ jobs:
         with:
           go-version: "1.22.2"
 
-      - name: Install required dependencies
+
+      # Step 3: Install native dependencies for OpenGL and GLFW
+      - name: Install system dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y \
@@ -32,6 +34,7 @@ jobs:
             libxext-dev \
             libxfixes-dev \
             pkg-config
+
 
       - name: Tidy Go modules
         run: go mod tidy
@@ -52,3 +55,16 @@ jobs:
             builds/myproject-windows-amd64.exe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Step 4: Ensure the 'builds' directory exists
+      - name: Ensure /builds directory exists
+        run: mkdir -p builds
+
+      # Step 5: Run 'go mod tidy'
+      - name: Run go mod tidy
+        run: go mod tidy
+
+      # Step 6: Build the Go project
+      - name: Build Go project
+        run: go build -o builds/myproject ./cmd/gopad
+
