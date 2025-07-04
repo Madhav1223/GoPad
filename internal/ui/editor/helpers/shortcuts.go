@@ -27,3 +27,12 @@ func HandleShortcut(shortcut fyne.Shortcut, svc *app.Service, showStatus func(st
 		}
 	}
 }
+
+// tabs.OnChanged = func(tab *container.TabItem) {
+// 	for i, t := range tabs.Items {
+// 		if t == tab {
+// 			svc.ActiveTab = i
+// 			break
+// 		}
+// 	}
+// }
