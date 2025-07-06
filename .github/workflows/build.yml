@@ -15,7 +15,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
         with:
-          fetch-depth: 0  # Needed for tags
+          fetch-depth: 0 # Needed for tags
 
       - name: Set up Go
         uses: actions/setup-go@v3
@@ -57,7 +57,7 @@ jobs:
           echo "Next tag: $next_tag"
           echo "tag=$next_tag" >> $GITHUB_OUTPUT
 
-      - name: Debug: Check PAT is loaded
+      - name: Check PAT is loaded
         run: |
           echo "PAT Length:" $(echo "${{ secrets.ACTION_TOKEN }}" | wc -c)
 
