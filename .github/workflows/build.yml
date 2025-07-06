@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - "main"
-      - "gitActionTest"
 
 jobs:
   build:
@@ -42,6 +41,17 @@ jobs:
         run: |
           mkdir -p builds
           GOOS=linux GOARCH=amd64 go build -o builds/myproject-linux-amd64 ./entry
+
+      - name: Create and push a tag
+        run: |
+          # Create a version tag with 'T' for test version followed by date and time
+          TAG_NAME="vT$(date +'%Y%m%d%H%M%S')"
+
+          # Create the tag locally with a message
+          git tag -a $TAG_NAME -m "Release version $TAG_NAME"
+
+          # Push the tag to GitHub
+          git push origin $TAG_NAME
 
       - name: Upload artifact
         uses: softprops/action-gh-release@v2
