@@ -79,7 +79,7 @@ jobs:
         run: |
           mkdir -p builds
           BIN_NAME="myproject-linux-amd64-${{ steps.get_tag.outputs.tag }}"
-          GOOS=linux GOARCH=amd64 go build -o builds/$BIN_NAME./entry
+          GOOS=linux GOARCH=amd64 go build -o builds/$BIN_NAME ./entry
           echo "bin_name=$BIN_NAME" >> $GITHUB_ENV
 
       - name: Upload to GitHub Release
