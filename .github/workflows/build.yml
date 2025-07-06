@@ -59,7 +59,7 @@ jobs:
       - name: Push existing tag (T1.0.0)
         run: |
           # Push the existing tag `T1.0.0` to GitHub
-          git push origin T1.0.0
+          git push origin t1.0.0
 
       - name: Upload artifact
         uses: softprops/action-gh-release@v2
