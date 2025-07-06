@@ -26,3 +26,5 @@ go.work
 Thumbs.db
 test*
 go.sum
+
+*.txt

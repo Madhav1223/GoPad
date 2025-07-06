@@ -1,41 +1,30 @@
-name: Go Build for GUI Platforms
+name: Go Build for Linux
 
 on:
   push:
-    tags:
-      - 'v*'
+    branches:
+      - "main"
+      
+permissions:
+  contents: write # Grant write access to repository contents for all jobs in this workflow [1, 2, 3, 4, 5]
 
 jobs:
   build:
-    name: Build for ${{ matrix.goos }}
-    runs-on: ${{ matrix.runner }}
-    strategy:
-      matrix:
-        include:
-          - goos: linux
-            goarch: amd64
-            runner: ubuntu-latest
-            ext: ""
-          - goos: windows
-            goarch: amd64
-            runner: windows-latest
-            ext: .exe
-          - goos: darwin
-            goarch: amd64
-            runner: macos-latest
-            ext: ""
+    name: Build and Release
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 0 # Needed for tags
 
       - name: Set up Go
         uses: actions/setup-go@v3
         with:
-          go-version: '1.22.2'
+          go-version: "1.22.2"
 
-      - name: Install system deps (Linux only)
-        if: matrix.goos == 'linux'
+      - name: Install Linux dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y \
@@ -50,17 +39,50 @@ jobs:
             libxfixes-dev \
             pkg-config
 
-      - name: Tidy modules
+      - name: Tidy Go modules
         run: go mod tidy
+
+      - name: Fetch all tags
+        run: git fetch --tags
+
+      - name: Determine next version tag
+        id: get_tag
+        run: |
+          latest=$(git tag --list 't1.0.*' --sort=-v:refname | head -n 1)
+          if [ -z "$latest" ]; then
+            next_tag="t1.0.0"
+          else
+            minor=$(echo "$latest" | awk -F. '{print $3}')
+            next_minor=$((minor + 1))
+            next_tag="t1.0.$next_minor"
+          fi
+          echo "Next tag: $next_tag"
+          echo "tag=$next_tag" >> $GITHUB_OUTPUT
+
+      - name: Configure Git and Push Tag
+        env:
+          ACTION_TOKEN: ${{ secrets.ACTION_TOKEN }}
+        run: |
+          git config --global user.email "077bct041.madhav@pcampus.edu.np"
+          git config --global user.name "Madhav1223"
+
+          git tag ${{ steps.get_tag.outputs.tag }}
+
+          # Changed to use 'origin' and rely on the GITHUB_TOKEN with write permissions [5]
+          git push origin ${{ steps.get_tag.outputs.tag }}
 
       - name: Build binary
         run: |
           mkdir -p builds
-          go build -o builds/myproject-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.ext }} ./cmd/gopad
+          BIN_NAME="gopad"
+          GOOS=linux GOARCH=amd64 go build -o builds/$BIN_NAME ./entry
+          echo "bin_name=$BIN_NAME" >> $GITHUB_ENV
 
-      - name: Upload artifact
+      - name: Upload to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: builds/*
+          tag_name: ${{ steps.get_tag.outputs.tag }}
+          generate_release_notes: true
+          files: builds/${{ env.bin_name }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.ACTION_TOKEN }}
