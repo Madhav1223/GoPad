@@ -25,8 +25,6 @@ func NewWindow(file string) {
 		fmt.Printf("Error opening file %s: %v\n", file, err)
 		return
 	}
-	fmt.Println("File content:")
-	fmt.Println(file_content)
 
 	fileMenu := menuBar.CreateAllMenus(a)
 	editor := widget.NewMultiLineEntry()
