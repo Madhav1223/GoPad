@@ -5,6 +5,7 @@ on:
     branches:
       - "main"
       - "gitActionTest"
+
 jobs:
   build:
     name: Build for Linux
@@ -13,6 +14,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 0 # Ensure the full history, including tags, is fetched
 
       - name: Set up Go
         uses: actions/setup-go@v3
@@ -42,16 +45,13 @@ jobs:
           mkdir -p builds
           GOOS=linux GOARCH=amd64 go build -o builds/myproject-linux-amd64 ./entry
 
-      - name: Create and push a tag
+      - name: Fetch all tags
+        run: git fetch --tags # Fetch all tags from the remote repository
+
+      - name: Push existing tag (T1.0.0)
         run: |
-          # Create a version tag with 'T' for test version followed by date and time
-          TAG_NAME="vT$(date +'%Y%m%d%H%M%S')"
-
-          # Create the tag locally with a message
-          git tag -a $TAG_NAME -m "Release version $TAG_NAME"
-
-          # Push the tag to GitHub
-          git push origin $TAG_NAME
+          # Push the existing tag `T1.0.0` to GitHub
+          git push origin t1.0.0
 
       - name: Upload artifact
         uses: softprops/action-gh-release@v2
