@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - "main"
-      - "gitActionTest"
 
 jobs:
   build:
@@ -58,19 +57,19 @@ jobs:
         if: matrix.goos == 'linux'
         run: |
           mkdir -p builds
-          GOOS=linux GOARCH=amd64 go build -o builds/myproject-linux-amd64 ./cmd/gopad
+          GOOS=linux GOARCH=amd64 go build -o builds/myproject-linux-amd64 ./entry
 
       - name: Build binary for Windows
         if: matrix.goos == 'windows'
         run: |
           mkdir -p builds
-          GOOS=windows GOARCH=amd64 go build -o builds/myproject-windows-amd64.exe ./cmd/gopad
+          GOOS=windows GOARCH=amd64 go build -o builds/myproject-windows-amd64.exe ./entry
 
       - name: Build binary for macOS
         if: matrix.goos == 'darwin'
         run: |
           mkdir -p builds
-          GOOS=darwin GOARCH=amd64 go build -o builds/myproject-darwin-amd64 ./cmd/gopad
+          GOOS=darwin GOARCH=amd64 go build -o builds/myproject-darwin-amd64 ./entry
 
       - name: Upload artifact
         uses: softprops/action-gh-release@v2
