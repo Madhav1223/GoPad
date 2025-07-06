@@ -15,7 +15,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
         with:
-          fetch-depth: 0
+          fetch-depth: 0  # Needed for tags
 
       - name: Set up Go
         uses: actions/setup-go@v3
@@ -43,11 +43,10 @@ jobs:
       - name: Fetch all tags
         run: git fetch --tags
 
-      - name: Determine next tag
+      - name: Determine next version tag
         id: get_tag
         run: |
           latest=$(git tag --list 't1.0.*' --sort=-v:refname | head -n 1)
-          echo "Latest tag: $latest"
           if [ -z "$latest" ]; then
             next_tag="t1.0.0"
           else
@@ -55,26 +54,36 @@ jobs:
             next_minor=$((minor + 1))
             next_tag="t1.0.$next_minor"
           fi
+          echo "Next tag: $next_tag"
           echo "tag=$next_tag" >> $GITHUB_OUTPUT
-          echo "Next tag will be: $next_tag"
 
-      - name: Push tag using PAT
+      - name: Debug: Check PAT is loaded
+        run: |
+          echo "PAT Length:" $(echo "${{ secrets.ACTION_TOKEN }}" | wc -c)
+
+      - name: Configure Git and Push Tag with PAT
+        env:
+          ACTION_TOKEN: ${{ secrets.ACTION_TOKEN }}
         run: |
           git config --global user.email "actions@github.com"
           git config --global user.name "GitHub Actions"
-          git remote set-url origin https://x-access-token:${{ secrets.ACTION_TOKEN }}@github.com/${{ github.repository }}
+          git remote set-url origin https://x-access-token:${ACTION_TOKEN}@github.com/${{ github.repository }}
+
           git tag ${{ steps.get_tag.outputs.tag }}
           git push origin ${{ steps.get_tag.outputs.tag }}
 
       - name: Build binary
         run: |
           mkdir -p builds
-          GOOS=linux GOARCH=amd64 go build -o builds/myproject-linux-amd64 ./entry
+          BIN_NAME="myproject-linux-amd64-${{ steps.get_tag.outputs.tag }}"
+          GOOS=linux GOARCH=amd64 go build -o builds/$BIN_NAME ./entry
+          echo "bin_name=$BIN_NAME" >> $GITHUB_ENV
 
       - name: Upload to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.get_tag.outputs.tag }}
-          files: builds/*
+          generate_release_notes: true
+          files: builds/${{ env.bin_name }}
         env:
           GITHUB_TOKEN: ${{ secrets.ACTION_TOKEN }}
