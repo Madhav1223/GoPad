@@ -52,10 +52,6 @@ jobs:
       - name: Fetch all tags
         run: git fetch --tags # Fetch all tags from the remote repository
 
-      - name: Set up GitHub token authentication
-        run: |
-          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
-
       - name: Push existing tag (T1.0.0)
         run: |
           # Push the existing tag `T1.0.0` to GitHub
@@ -66,4 +62,4 @@ jobs:
         with:
           files: builds/*
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.ACTION_TOKEN }}
