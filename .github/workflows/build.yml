@@ -2,8 +2,9 @@ name: Go Build for GUI Platforms
 
 on:
   push:
-    tags:
-      - 'v*'
+    branches:
+      - "main"
+      - "gitActionTest"
 
 jobs:
   build:
@@ -32,7 +33,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v3
         with:
-          go-version: '1.22.2'
+          go-version: "1.22.2"
 
       - name: Install system deps (Linux only)
         if: matrix.goos == 'linux'
@@ -53,10 +54,23 @@ jobs:
       - name: Tidy modules
         run: go mod tidy
 
-      - name: Build binary
+      - name: Build binary for Linux
+        if: matrix.goos == 'linux'
         run: |
           mkdir -p builds
-          go build -o builds/myproject-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.ext }} ./cmd/gopad
+          GOOS=linux GOARCH=amd64 go build -o builds/myproject-linux-amd64 ./cmd/gopad
+
+      - name: Build binary for Windows
+        if: matrix.goos == 'windows'
+        run: |
+          mkdir -p builds
+          GOOS=windows GOARCH=amd64 go build -o builds/myproject-windows-amd64.exe ./cmd/gopad
+
+      - name: Build binary for macOS
+        if: matrix.goos == 'darwin'
+        run: |
+          mkdir -p builds
+          GOOS=darwin GOARCH=amd64 go build -o builds/myproject-darwin-amd64 ./cmd/gopad
 
       - name: Upload artifact
         uses: softprops/action-gh-release@v2
