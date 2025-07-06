@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - "main"
-      - "gitActionTest"
+      
 permissions:
   contents: write # Grant write access to repository contents for all jobs in this workflow [1, 2, 3, 4, 5]
 
@@ -59,10 +59,6 @@ jobs:
           echo "Next tag: $next_tag"
           echo "tag=$next_tag" >> $GITHUB_OUTPUT
 
-      - name: Check PAT is loaded
-        run: |
-          echo "PAT Length:" $(echo "${{ secrets.ACTION_TOKEN }}" | wc -c)
-
       - name: Configure Git and Push Tag
         env:
           ACTION_TOKEN: ${{ secrets.ACTION_TOKEN }}
@@ -78,7 +74,7 @@ jobs:
       - name: Build binary
         run: |
           mkdir -p builds
-          BIN_NAME="myproject-linux-amd64-${{ steps.get_tag.outputs.tag }}"
+          BIN_NAME="gopad"
           GOOS=linux GOARCH=amd64 go build -o builds/$BIN_NAME ./entry
           echo "bin_name=$BIN_NAME" >> $GITHUB_ENV
 
