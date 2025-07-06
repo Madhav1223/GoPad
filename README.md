@@ -26,7 +26,7 @@ GoPad supports multiple text editing functionalities, including regex-based sear
 - [ ] **Find in Files**: Search across multiple files in a project.
 - [ ] **Multi-tab Support**: Open and edit multiple files simultaneously in different tabs.
 - [ ] **Auto-save**: Set automatic saving intervals to avoid data loss.
-- [ ] **Status Bar**: Display cursor position, file status, and word count.
+- [x] **Status Bar**: Display cursor position, file status, and word count.
 - [ ] **Line Numbers**: Display line numbers in the editor for better navigation.
 
 ### Customization & Personalization
@@ -48,31 +48,28 @@ GoPad supports multiple text editing functionalities, including regex-based sear
 
 ### Prerequisites
 
-To run **GoPad**, you need:
-
-- **Go 1.20** or higher
-- [Fyne](https://fyne.io/) GUI toolkit
+- No need to install **Go**—the application is packaged as a standalone binary.
 
 ### Installation
 
-1. **Install Fyne:**
+1. **Download the Latest Release:**
+
+   Go to the [latest release](https://github.com/madhav1223/GoPad/releases) on GitHub and download the appropriate binary for your platform.
+
+2. **Move the Binary to a Global Path:**
+
+   After downloading the binary, move it to a directory that is in your system's `$PATH`, like `/usr/local/bin`:
 
    ```bash
-   go install fyne.io/fyne/v2/cmd/fyne@latest
-   go get fyne.io/fyne/v2
-   ```
-
-2. **Clone the Repository:**
-
-   ```bash
-   git clone https://github.com/madhav1223/GoNote.git
-   cd GoNote
+   sudo mv gopad /usr/local/bin
    ```
 
 3. **Run the Application:**
 
+   Once the binary is in place, you can start the application by simply running:
+
    ```bash
-   go run main.go
+   gopad
    ```
 
 ---
@@ -80,23 +77,27 @@ To run **GoPad**, you need:
 ## 🗂️ Project Structure
 
 ```
-GoPad/
-├── cmd/
-│   └── notepad/
-│       └── main.go            # Application entry point
-├── go.mod                     # Go module definition
-├── go.sum                     # Go module checksums
-├── internal/
-│   ├── app/
-│   │   └── services.go        # Core application services
-│   └── ui/
-│       ├── theme.go           # Theme definitions
-│       └── window.go          # Window and UI logic
-├── LICENSE                    # Project license
-├── README.md                  # Project documentation (You are here)
-└── themes/
-    ├── darker.go              # Darker theme implementation
-    └── fancy.go               # Fancy theme implementation
+├── entry
+│   └── main.go
+├── go.mod
+├── go.sum
+├── helpers
+│   ├── flaghandler.go
+│   ├── helpers.go
+│   └── openfile.go
+├── LICENSE
+├── mpp.txt
+├── README.md
+├── test.txt
+├── ui
+│   └── ui.go
+└── uiComponent
+    ├── Editor
+    ├── menu
+    │   └── menu.go
+    └── statusBar
+        └── statusBar.go
+
 ```
 
 ---
