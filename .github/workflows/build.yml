@@ -5,6 +5,7 @@ on:
     branches:
       - "main"
       - "gitActionTest"
+      - "Test"
 jobs:
   build:
     name: Build for Linux
