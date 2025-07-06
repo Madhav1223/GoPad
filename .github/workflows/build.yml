@@ -5,6 +5,8 @@ on:
     branches:
       - "main"
       - "gitActionTest"
+permissions:
+  contents: write # Grant write access to repository contents for all jobs in this workflow [1, 2, 3, 4, 5]
 
 jobs:
   build:
@@ -61,7 +63,7 @@ jobs:
         run: |
           echo "PAT Length:" $(echo "${{ secrets.ACTION_TOKEN }}" | wc -c)
 
-      - name: Configure Git and Push Tag with PAT
+      - name: Configure Git and Push Tag
         env:
           ACTION_TOKEN: ${{ secrets.ACTION_TOKEN }}
         run: |
@@ -70,13 +72,14 @@ jobs:
 
           git tag ${{ steps.get_tag.outputs.tag }}
 
-          git push https://x-access-token:${ACTION_TOKEN}@github.com/${{ github.repository }} ${{ steps.get_tag.outputs.tag }}
+          # Changed to use 'origin' and rely on the GITHUB_TOKEN with write permissions [5]
+          git push origin ${{ steps.get_tag.outputs.tag }}
 
       - name: Build binary
         run: |
           mkdir -p builds
           BIN_NAME="myproject-linux-amd64-${{ steps.get_tag.outputs.tag }}"
-          GOOS=linux GOARCH=amd64 go build -o builds/$BIN_NAME ./entry
+          GOOS=linux GOARCH=amd64 go build -o builds/$BIN_NAME./entry
           echo "bin_name=$BIN_NAME" >> $GITHUB_ENV
 
       - name: Upload to GitHub Release
