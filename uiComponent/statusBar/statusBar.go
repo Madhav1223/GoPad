@@ -4,22 +4,30 @@ import (
 	"fmt"
 	"strings"
 
+	"fyne.io/fyne/v2"
+	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 )
 
-//  Initalize statusbar taking filecontent as input
-//  and update the statusbar with line, word, and character count
+func CreateStatusBar(editor *widget.Entry) fyne.CanvasObject {
 
-func InitializeStatusBar(editor *widget.Entry) *widget.Label {
 	statusLabel := widget.NewLabel("Line: 1 | Words: 0 | Characters: 0")
+
 	UpdateStatusBar(editor, statusLabel)
 
 	editor.OnChanged = func(s string) {
 		UpdateStatusBar(editor, statusLabel)
 	}
 
-	return statusLabel
+	statusContainer := container.NewHBox(
+		widget.NewIcon(theme.AccountIcon()),
+		statusLabel,
+	)
+
+	return statusContainer
 }
+
 func UpdateStatusBar(editor *widget.Entry, statusLabel *widget.Label) {
 	text := editor.Text
 	lines := len(strings.Split(text, "\n"))

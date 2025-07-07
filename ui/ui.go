@@ -12,7 +12,6 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/container"
-	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 )
 
@@ -31,13 +30,7 @@ func NewWindow(file string) {
 	editor.SetPlaceHolder("Type your text here...")
 	editor.SetText(file_content)
 
-	statusLabel := widget.NewLabel("Line: 1 | Words: 0 | Characters: 0")
-	statusbar.UpdateStatusBar(editor, statusLabel)
-	editor.OnChanged = func(s string) {
-		statusbar.UpdateStatusBar(editor, statusLabel)
-	}
-
-	statusContainer := container.NewHBox(widget.NewIcon(theme.AccountIcon()), statusLabel)
+	statusContainer := statusbar.CreateStatusBar(editor)
 
 	content := container.NewBorder(nil, statusContainer, nil, nil, editor)
 
